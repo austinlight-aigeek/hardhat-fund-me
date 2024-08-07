@@ -1,13 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-// Get funds from users
-// Withdraw funds
-// Set a minimum fundsing value in USD
-
 import "./PriceConverter.sol";
-
-// constant, immutable
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 error NotOwner();
 
@@ -21,15 +16,18 @@ contract FundMe {
 
     address public immutable i_owner;
 
-    constructor() {
+    AggregatorV3Interface public priceFeed;
+
+    constructor(address _priceFeeed) {
         i_owner = msg.sender;
+        priceFeed = AggregatorV3Interface(_priceFeeed);
     }
 
     function fund() public payable {
         // Want to be able to set a minimum
         // require(getConversionRate(msg.value) >= MINIMUM_USD, "Didn't send enough");
         require(
-            msg.value.getConversionRate() >= MINIMUM_USD,
+            msg.value.getConversionRate(priceFeed) >= MINIMUM_USD,
             "Didn't send enough"
         );
         funders.push(msg.sender);
